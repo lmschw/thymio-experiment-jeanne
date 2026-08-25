@@ -7,15 +7,16 @@ tracking:
 
   hostname_map:
     thymio-11: "RigidBody 19"
-    thymio-25: "RigidBody 24"
-    thymio-06: "RigidBody 18"
-    thymio-17: "RigidBody 22"
-    thymio-20: "RigidBody 21"
-    thymio-09: "RigidBody 25"
-    thymio-12: "RigidBody 23"
+    thymio-12: "RigidBody 27"
+    thymio-14: "RigidBody 21"
+    thymio-15: "RigidBody 29"
+    thymio-16: "RigidBody 21"
+    thymio-17: "RigidBody 25"
     thymio-18: "RigidBody 14"
-    thymio-14: "RigidBody 17"
-    thymio-19: "RigidBody 13"
+    thymio-19: "RigidBody 30"
+    thymio-20: "RigidBody 21"
+    thymio-25: "RigidBody 24"
+
 
 experiments:
   obstacle_avoidance:
