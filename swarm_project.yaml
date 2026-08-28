@@ -13,9 +13,9 @@ tracking:
     thymio-21: "RigidBody 33"
     thymio-22: "RigidBody 30"
     thymio-19: "RigidBody 21"
-    thymio-11: "RigidBody 31"
+    thymio-10: "RigidBody 31"
     thymio-15: "RigidBody 38"
-    thymio-18: "RigidBody 34"
+    thymio-17: "RigidBody 34"
 
 
 
