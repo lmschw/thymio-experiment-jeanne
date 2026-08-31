@@ -11,7 +11,11 @@ tracking:
     thymio-13: "RigidBody 33"
     thymio-12: "RigidBody 30"
     thymio-25: "RigidBody 21"
-
+    thymio-18: "RigidBody 31"
+    thymio-08: "RigidBody 45"
+    thymio-17: "RigidBody 34"
+    thymio-16: "RigidBody 36"
+    thymio-09: "RigidBody 43"
 
 
 experiments:
