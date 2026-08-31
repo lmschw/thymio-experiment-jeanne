@@ -7,9 +7,9 @@ class ColorRecognition:
     it replaces `current_patch`, to filter out sensor noise during transitions.
     """
     PATCHES = [
-        {"index": 0, "average": 60, "eps": 14, "name": "black"},  
-        {"index": 1, "average": 851, "eps": 27, "name": "white"},  
-        {"index": 2, "average": 145, "eps": 24, "name": "brown"}   
+        {"index": 0, "average": 42, "eps": 14, "name": "black"},  
+        {"index": 1, "average": 690, "eps": 27, "name": "white"},  
+        {"index": 2, "average": 110, "eps": 24, "name": "brown"}   
     ]
 
     def __init__(self):
