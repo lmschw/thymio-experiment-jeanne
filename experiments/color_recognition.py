@@ -2,6 +2,7 @@ import asyncio
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
 from behaviours.color_recognition import ColorRecognition
+from behaviours.colour_recognition import OptionGroundSensor
 
 class ColorRecognitionExperiment:
     """
@@ -20,7 +21,8 @@ class ColorRecognitionExperiment:
         self.wheel_velocity = self.config.get("wheel_velocity", 200)
 
         self.obstacle_avoidance = ObstacleAvoidance(wheel_velocity=self.wheel_velocity)
-        self.color_recognition = ColorRecognition()
+        #self.color_recognition = ColorRecognition()
+        self.color_recognition = OptionGroundSensor()
 
     async def run(self):
 
@@ -37,14 +39,17 @@ class ColorRecognitionExperiment:
 
             ground = await self.robot.proximity_ground_reflected()
 
-            _, color = self.color_recognition.filtered_color(ground)
+            #_, color = self.color_recognition.filtered_color(ground)
+            color, _ = self.color_recognition.detect_option(ground)
 
             await self.robot.drive(left, right)
 
             if self.logger:
                 self.logger.log(
                     state={"proximity": prox,
-                           "reflected": ground},
+                           "reflected_0": ground[0],
+                           "reflected_1": ground[1],
+                           "reflected_avg": (ground[0] + ground[1])/2},
                     command={
                         "left_motor": left,
                         "right_motor": right,
