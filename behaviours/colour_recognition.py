@@ -8,7 +8,7 @@ UNKNOWN = -1
 CALIBRATION_FILE = (
     Path(__file__).resolve().parent
     / "config"
-    / "ground_sensor_calibration.yaml"
+    / "colour_calibration.yaml"
 )
 
 with CALIBRATION_FILE.open() as f:
