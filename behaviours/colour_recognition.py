@@ -24,7 +24,7 @@ class OptionGroundSensor:
     # (black, grey, white - calibrated hardware values from
     # GroundColourSensor: BLACK_CENTER=51, GREY_CENTER=154, WHITE_CENTER=885).
     DEFAULT_OPTION_CENTERS = [39, 78, 620]
-    DEFAULT_ALLOWED_OFFSETS = [15, 10, 80]
+    DEFAULT_ALLOWED_OFFSETS = [15, 10, 45]
 
     def __init__(
         self,
