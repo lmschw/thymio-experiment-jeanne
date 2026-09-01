@@ -18,7 +18,7 @@ with CALIBRATION_FILE.open() as f:
 
 class OptionGroundSensor:
 
-    ALLOWED_SENSOR_OFFSET = 40
+    #ALLOWED_SENSOR_OFFSET = 40
 
     def __init__(self, num_options=3):
         hostname = socket.gethostname()
@@ -73,8 +73,8 @@ class OptionGroundSensor:
     def detect_option(self, reflected):
         avg = 0.5 * (reflected[0] + reflected[1])
 
-        if abs(reflected[0] - reflected[1]) >= self.ALLOWED_SENSOR_OFFSET:
-            return UNKNOWN, avg
+        # if abs(reflected[0] - reflected[1]) >= self.ALLOWED_SENSOR_OFFSET:
+        #     return UNKNOWN, avg
 
         colour = self._classify(avg)
 
