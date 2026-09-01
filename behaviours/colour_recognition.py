@@ -1,61 +1,51 @@
-"""
-Ground patch classifier for decision-making options, calibrated to real
-Thymio hardware readings.
+from pathlib import Path
+import socket
 
-Same "nearest calibrated centre within an allowed offset" classification
-as GroundColourSensor, generalised to N configurable option centres.
+import yaml
 
-Unlike the earlier version, white is NOT treated as a "background /
-no-option" sentinel here - it's a real decision option like black or
-grey (matching a 3-option best-of-3 over black / grey / white patches).
-UNKNOWN only means "this reading doesn't match any calibrated centre
-closely enough", not "this is the empty floor".
-"""
+UNKNOWN = -1
 
-UNKNOWN = -1    # reading doesn't match any calibrated centre closely enough
+CALIBRATION_FILE = (
+    Path(__file__).resolve().parent
+    / "config"
+    / "ground_sensor_calibration.yaml"
+)
+
+with CALIBRATION_FILE.open() as f:
+    ROBOT_CALIBRATION = yaml.safe_load(f)
 
 
 class OptionGroundSensor:
 
-    ALLOWED_OFFSET = 30
-    ALLOWED_SENSOR_OFFSET = 50
+    ALLOWED_SENSOR_OFFSET = 40
 
-    # Default centres, in index order: option 0, option 1, option 2
-    # (black, grey, white - calibrated hardware values from
-    # GroundColourSensor: BLACK_CENTER=51, GREY_CENTER=154, WHITE_CENTER=885).
-    DEFAULT_OPTION_CENTERS = [39, 78, 620]
-    DEFAULT_ALLOWED_OFFSETS = [15, 10, 55]
+    def __init__(self, num_options=3):
+        hostname = socket.gethostname()
 
-    def __init__(
-        self,
-        num_options=3,
-        option_centers=None,
-        allowed_offsets=None,
-    ):
-        self.num_options = num_options
+        if hostname not in ROBOT_CALIBRATION:
+            raise ValueError(
+                f"No ground sensor calibration found for hostname "
+                f"'{hostname}'. Known robots: "
+                f"{', '.join(ROBOT_CALIBRATION)}"
+            )
 
-        self.option_centers = (
-            list(option_centers)
-            if option_centers is not None
-            else self.DEFAULT_OPTION_CENTERS[:num_options]
-        )
+        calibration = ROBOT_CALIBRATION[hostname]
+
+        self.option_centers = calibration["option_centers"]
+        self.allowed_offsets = calibration["allowed_offsets"]
 
         if len(self.option_centers) != num_options:
             raise ValueError(
-                "option_centers length must match num_options "
-                f"({len(self.option_centers)} != {num_options})"
+                f"Calibration for '{hostname}' has "
+                f"{len(self.option_centers)} option centres, "
+                f"but {num_options} options were requested."
             )
-
-        self.allowed_offsets = (
-            list(allowed_offsets)
-            if allowed_offsets is not None
-            else self.DEFAULT_ALLOWED_OFFSETS[:num_options]
-        )
 
         if len(self.allowed_offsets) != num_options:
             raise ValueError(
-                "allowed_offsets length must match num_options "
-                f"({len(self.allowed_offsets)} != {num_options})"
+                f"Calibration for '{hostname}' has "
+                f"{len(self.allowed_offsets)} allowed offsets, "
+                f"but {num_options} options were requested."
             )
 
     def _classify(self, value: int) -> int:
@@ -73,19 +63,10 @@ class OptionGroundSensor:
             return best_key
 
         return UNKNOWN
-
-    def detect_option(self, reflected):
-        """
-        reflected: [left_reading, right_reading] raw ADC values from
-        robot.proximity_ground_reflected().
-
-        Returns (option_index, avg_reading):
-          option_index is -1 only if the two sensors disagree on
-          different options, or the reading matches no centre at all.
-        """
-        avg = 0.5 * ((reflected[0] if len(reflected) > 0 else 0)
-                     + (reflected[1] if len(reflected) > 1 else 0))
         
+    def detect_option(self, reflected):
+        avg = 0.5 * (reflected[0] + reflected[1])
+
         if abs(reflected[0] - reflected[1]) >= self.ALLOWED_SENSOR_OFFSET:
             return UNKNOWN, avg
 
