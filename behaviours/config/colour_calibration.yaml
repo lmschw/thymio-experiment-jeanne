@@ -1,7 +1,8 @@
 thymio-08:
   option_centers: [37, 77, 569]
-  allowed_offsets: [4, 7, 30]
+  allowed_offsets: [15, 15, 40]
 
 thymio-16:
   option_centers: [41, 89, 651]
-  allowed_offsets: [2, 3, 17]
+  allowed_offsets: [15, 15, 40]
+
