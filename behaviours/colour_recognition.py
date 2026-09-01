@@ -18,42 +18,58 @@ UNKNOWN = -1    # reading doesn't match any calibrated centre closely enough
 class OptionGroundSensor:
 
     ALLOWED_OFFSET = 30
-    ALLOWED_SENSOR_OFFSET = 40
+    ALLOWED_SENSOR_OFFSET = 50
 
     # Default centres, in index order: option 0, option 1, option 2
     # (black, grey, white - calibrated hardware values from
     # GroundColourSensor: BLACK_CENTER=51, GREY_CENTER=154, WHITE_CENTER=885).
-    DEFAULT_OPTION_CENTERS = [51, 133, 890]
+    DEFAULT_OPTION_CENTERS = [39, 78, 620]
+    DEFAULT_ALLOWED_OFFSETS = [15, 10, 80]
 
-    def __init__(self,
-                 num_options=3,
-                 option_centers=None,
-                 allowed_offset=None):
+    def __init__(
+        self,
+        num_options=3,
+        option_centers=None,
+        allowed_offsets=None,
+    ):
         self.num_options = num_options
-        self.option_centers = (list(option_centers) if option_centers is not None
-                                else self.DEFAULT_OPTION_CENTERS[:num_options])
+
+        self.option_centers = (
+            list(option_centers)
+            if option_centers is not None
+            else self.DEFAULT_OPTION_CENTERS[:num_options]
+        )
+
         if len(self.option_centers) != num_options:
             raise ValueError(
                 "option_centers length must match num_options "
-                f"({len(self.option_centers)} != {num_options})")
-        self.allowed_offset = (allowed_offset if allowed_offset is not None
-                                else self.ALLOWED_OFFSET)
+                f"({len(self.option_centers)} != {num_options})"
+            )
+
+        self.allowed_offsets = (
+            list(allowed_offsets)
+            if allowed_offsets is not None
+            else self.DEFAULT_ALLOWED_OFFSETS[:num_options]
+        )
+
+        if len(self.allowed_offsets) != num_options:
+            raise ValueError(
+                "allowed_offsets length must match num_options "
+                f"({len(self.allowed_offsets)} != {num_options})"
+            )
 
     def _classify(self, value: int) -> int:
-        """
-        Returns the option index (0..num_options-1) whose centre is
-        nearest `value`, or UNKNOWN if nothing is within allowed_offset.
-        """
         best_key = UNKNOWN
         best_distance = float("inf")
 
         for idx, centre in enumerate(self.option_centers):
             distance = abs(value - centre)
+
             if distance < best_distance:
                 best_distance = distance
                 best_key = idx
 
-        if best_distance <= self.allowed_offset:
+        if best_distance <= self.allowed_offsets[best_key]:
             return best_key
 
         return UNKNOWN
