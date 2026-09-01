@@ -4,6 +4,7 @@ import socket
 import yaml
 
 UNKNOWN = -1
+WHITE_OPTION = 2
 
 CALIBRATION_FILE = (
     Path(__file__).resolve().parent
@@ -53,6 +54,11 @@ class OptionGroundSensor:
         best_distance = float("inf")
 
         for idx, centre in enumerate(self.option_centers):
+            if idx == WHITE_OPTION:
+                if value >= centre - self.allowed_offsets[idx]:
+                    return idx
+                continue
+
             distance = abs(value - centre)
 
             if distance < best_distance:
