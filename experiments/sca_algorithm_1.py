@@ -4,7 +4,7 @@ import os
 import re
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
-from behaviours.color_recognition import ColorRecognition
+from behaviours.colour_recognition import OptionGroundSensor
 from behaviours.sca_algorithm_1 import SCA 
 from swarm_platform.controller.client import SwarmClient
 from utils.communication import SwarmUDPManager 
@@ -37,7 +37,7 @@ class SCAExperiment:
         self.wheel_velocity = self.config.get("wheel_velocity", 200)
 
         self.obstacle_avoidance = ObstacleAvoidance(wheel_velocity=self.wheel_velocity)
-        self.color_recognition = ColorRecognition()
+        self.color_recognition = OptionGroundSensor()
         self.sca_algorithm = SCA()
 
         self.nearby_ids = {}       
@@ -66,7 +66,7 @@ class SCAExperiment:
             left, right = self.obstacle_avoidance.step_motion(prox)
             
             ground = await self.robot.proximity_ground_reflected()
-            patch, _ = self.color_recognition.filtered_color(ground)
+            patch, _ = self.color_recognition.detect_option(ground)
 
             await self.robot.send(self.short_id)
 

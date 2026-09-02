@@ -1,7 +1,6 @@
 import asyncio
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
-from behaviours.color_recognition import ColorRecognition
 from behaviours.colour_recognition import OptionGroundSensor
 
 class ColorRecognitionExperiment:
