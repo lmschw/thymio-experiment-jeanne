@@ -6,18 +6,8 @@ tracking:
   host: 10.0.10.4
 
   hostname_map:
-    thymio-01: "RigidBody 47"
-    thymio-03: "RigidBody 50"
-    thymio-04: "RigidBody 51"
-    thymio-06: "RigidBody 54"
-    thymio-07: "RigidBody 55"
-    thymio-14: "RigidBody 19"
-    thymio-15: "RigidBody 42"
-    thymio-11: "RigidBody 33"
-    thymio-12: "RigidBody 30"
     thymio-25: "RigidBody 21"
     thymio-18: "RigidBody 31"
-    thymio-08: "RigidBody 45"
     thymio-17: "RigidBody 34"
     thymio-16: "RigidBody 36"
     thymio-19: "RigidBody 46"
