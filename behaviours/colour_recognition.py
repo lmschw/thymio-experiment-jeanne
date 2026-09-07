@@ -4,7 +4,7 @@ import socket
 import yaml
 
 UNKNOWN = -1
-WHITE_OPTION = 2
+WHITE_OPTION = 1
 
 CALIBRATION_FILE = (
     Path(__file__).resolve().parent
