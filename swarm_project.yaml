@@ -22,7 +22,6 @@ hostname_map:
   thymio-16: "RigidBody 36"
   thymio-19: "RigidBody 46"
 
-
 experiments:
   obstacle_avoidance:
     class: experiments.obstacle_avoidance.ObstacleAvoidanceExperiment
