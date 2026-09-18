@@ -1,5 +1,4 @@
 import asyncio
-import math
 from pathlib import Path
 
 import yaml
@@ -12,8 +11,6 @@ OUTPUT_FILE = (
     / "config"
     / "patch_positions.yaml"
 )
-
-DEFAULT_RADIUS = 0.15  # metres; how close counts as "on" a patch
 
 # LED shown on the ring while waiting for the button press for each step.
 STEP_COLORS = {
@@ -33,16 +30,21 @@ class CalibratePatchesExperiment:
     `behaviours.patch_location.PatchLocationChecker` to cross-check (and
     veto) ground-sensor readings in the `*_leds` experiments.
 
+    Patches are squares, and not all the same size, so each one is
+    calibrated by its axis-aligned bounding box rather than a centre +
+    radius.
+
     Usage: start this experiment, then place the robot at the arena
     centre and press its centre button to record that point. The LED
     ring then shows the colour of the next patch to record (dark blue
-    for black, white, then the dim brown) -- move the robot onto that
-    patch and press the centre button again. Once all 3 patches are
-    recorded, the resulting YAML is printed to stdout (visible over
-    `journalctl -u swarm-daemon.service -f` if run on a robot) -- copy
-    it into behaviours/config/patch_positions.yaml, commit, and
-    redeploy so every robot picks it up. The experiment also makes a
-    best-effort attempt to write the file directly.
+    for black, white, then the dim brown) -- for each patch, place the
+    robot at one CORNER of that square patch and press the button, then
+    at the diagonally OPPOSITE corner and press the button again. Once
+    all 3 patches are recorded, the resulting YAML is printed to stdout
+    (visible over `journalctl -u swarm-daemon.service -f` if run on a
+    robot) -- copy it into behaviours/config/patch_positions.yaml,
+    commit, and redeploy so every robot picks it up. The experiment
+    also makes a best-effort attempt to write the file directly.
 
     Requires `tracking: true` for this experiment in swarm_project.yaml.
     """
@@ -51,7 +53,6 @@ class CalibratePatchesExperiment:
         self.robot = robot
         self.logger = logger
         self.config = config or {}
-        self.radius = self.config.get("radius", DEFAULT_RADIUS)
 
         self.running = True
         self.paused = False
@@ -96,23 +97,38 @@ class CalibratePatchesExperiment:
         return x, z
 
     async def run(self):
-        center = await self._record("center", STEP_COLORS["center"])
+        center = await self._record("arena centre", STEP_COLORS["center"])
         if center is None:
             return
 
         patches = {}
         for index, name in enumerate(PATCH_NAMES):
-            point = await self._record(name, STEP_COLORS[index])
-            if point is None:
+            colour = STEP_COLORS[index]
+
+            corner_a = await self._record(f"{name} patch -- one CORNER", colour)
+            if corner_a is None:
                 return
 
-            patches[index] = {"x": point[0], "z": point[1], "name": name}
+            corner_b = await self._record(f"{name} patch -- the OPPOSITE corner", colour)
+            if corner_b is None:
+                return
 
-            distance = math.hypot(point[0] - center[0], point[1] - center[1])
-            print(f"[CALIBRATE]   distance from centre: {distance:.3f} m")
+            x_min, x_max = sorted((corner_a[0], corner_b[0]))
+            z_min, z_max = sorted((corner_a[1], corner_b[1]))
+
+            patches[index] = {
+                "x_min": x_min,
+                "x_max": x_max,
+                "z_min": z_min,
+                "z_max": z_max,
+                "name": name,
+            }
+            print(
+                f"[CALIBRATE]   '{name}' bounds: "
+                f"x=[{x_min:.3f}, {x_max:.3f}], z=[{z_min:.3f}, {z_max:.3f}]"
+            )
 
         result = {
-            "radius": self.radius,
             "center": {"x": center[0], "z": center[1]},
             "patches": patches,
         }

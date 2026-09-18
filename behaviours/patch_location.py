@@ -1,9 +1,6 @@
-import math
 from pathlib import Path
 
 import yaml
-
-DEFAULT_RADIUS = 0.15  # metres; how close counts as "on" a patch
 
 CONFIG_FILE = (
     Path(__file__).resolve().parent
@@ -15,13 +12,13 @@ CONFIG_FILE = (
 class PatchLocationChecker:
     """
     Cross-checks a ground-sensor colour reading against the robot's
-    tracked (Optitrack) position, using patch positions recorded by the
-    `calibrate_patches` experiment.
+    tracked (Optitrack) position, using the patches' axis-aligned
+    bounding boxes recorded by the `calibrate_patches` experiment.
 
     Used only to police/veto ground-sensor readings, never to invent an
     opinion the sensor itself didn't report: if the robot isn't actually
-    near the patch the sensor claims, the reading is rejected to unknown
-    (-1) for that tick.
+    within the patch the sensor claims, the reading is rejected to
+    unknown (-1) for that tick.
 
     If no calibration file is found, policing is a no-op (every reading
     passes through unchanged) so behaviour is unaffected until the arena
@@ -29,7 +26,6 @@ class PatchLocationChecker:
     """
 
     def __init__(self, config_file: Path = CONFIG_FILE):
-        self.radius = DEFAULT_RADIUS
         self.patches = {}
 
         if not config_file.exists():
@@ -43,9 +39,13 @@ class PatchLocationChecker:
         with config_file.open() as f:
             config = yaml.safe_load(f) or {}
 
-        self.radius = config.get("radius", DEFAULT_RADIUS)
         self.patches = {
-            int(index): (patch["x"], patch["z"])
+            int(index): (
+                patch["x_min"],
+                patch["x_max"],
+                patch["z_min"],
+                patch["z_max"],
+            )
             for index, patch in config.get("patches", {}).items()
         }
 
@@ -55,9 +55,10 @@ class PatchLocationChecker:
             position: (x, y, z) tracked position, or None.
 
         Returns:
-            The index of the recorded patch whose centre is nearest to
-            `position` and within `self.radius`, or -1 if `position` is
-            None or isn't within range of any known patch.
+            The index of the recorded patch whose bounding box contains
+            `position`, choosing the smallest one if more than one does
+            (e.g. overlapping calibration), or -1 if `position` is None
+            or falls outside every known patch.
         """
         if position is None:
             return -1
@@ -65,11 +66,14 @@ class PatchLocationChecker:
         x, _, z = position
 
         best_index = -1
-        best_distance = self.radius
-        for index, (px, pz) in self.patches.items():
-            distance = math.hypot(x - px, z - pz)
-            if distance <= best_distance:
-                best_distance = distance
+        best_area = None
+        for index, (x_min, x_max, z_min, z_max) in self.patches.items():
+            if not (x_min <= x <= x_max and z_min <= z <= z_max):
+                continue
+
+            area = (x_max - x_min) * (z_max - z_min)
+            if best_area is None or area < best_area:
+                best_area = area
                 best_index = index
 
         return best_index
@@ -83,8 +87,8 @@ class PatchLocationChecker:
         Returns:
             `patch` unchanged if there's no calibration data to check
             against, if the sensor reported no patch, or if the robot's
-            tracked position is within range of that same patch.
-            Otherwise -1 (the reading is vetoed).
+            tracked position falls inside that same patch's bounding
+            box. Otherwise -1 (the reading is vetoed).
         """
         if patch == -1 or not self.patches:
             return patch
