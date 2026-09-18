@@ -38,4 +38,7 @@ experiments:
   quorum_sensing_leds:
     class: experiments.quorum_sensing_leds.QuorumSensingExperiment
     tracking: true
+  calibrate_patches:
+    class: experiments.calibrate_patches.CalibratePatchesExperiment
+    tracking: true
 

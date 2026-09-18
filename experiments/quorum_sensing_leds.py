@@ -5,9 +5,10 @@ import time
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
 from behaviours.colour_recognition import OptionGroundSensor
-from behaviours.quorum_sensing import QuorumSensing 
+from behaviours.patch_location import PatchLocationChecker
+from behaviours.quorum_sensing import QuorumSensing
 from swarm_platform.controller.client import SwarmClient
-from utils.communication import SwarmUDPManager 
+from utils.communication import SwarmUDPManager
 
 class QuorumSensingExperiment:
     """ 
@@ -52,6 +53,7 @@ class QuorumSensingExperiment:
             
             self.obstacle_avoidance = ObstacleAvoidance(wheel_velocity=self.wheel_velocity)
             self.color_recognition = OptionGroundSensor()
+            self.patch_location = PatchLocationChecker()
             self.quorum_sensing = QuorumSensing()
 
             self.radius = 0.3
@@ -94,8 +96,10 @@ class QuorumSensingExperiment:
                 if msg.get("id") in nearby_hostnames:
                     neighbours[id] = msg
 
+            policed_patch = self.patch_location.check(patch, my_pose.position if my_pose else None)
+
             settling = (time.monotonic() - self.start_time) < self.OPINION_GRACE_PERIOD
-            patch_for_opinion = -1 if settling else patch
+            patch_for_opinion = -1 if settling else policed_patch
 
             opinion = self.quorum_sensing.tick(patch_for_opinion, neighbours)
 
@@ -120,6 +124,7 @@ class QuorumSensingExperiment:
                         "left_motor": left,
                         "right_motor": right,
                         "patch": patch,
+                        "policed_patch": policed_patch,
                         "opinion": opinion,
                         "neighbours": nearby_hostnames,
                         "position": my_pose.position if my_pose else None

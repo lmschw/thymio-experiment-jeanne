@@ -5,9 +5,10 @@ import time
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
 from behaviours.colour_recognition import OptionGroundSensor
-from behaviours.sca_algorithm_2 import SCA 
+from behaviours.patch_location import PatchLocationChecker
+from behaviours.sca_algorithm_2 import SCA
 from swarm_platform.controller.client import SwarmClient
-from utils.communication import SwarmUDPManager 
+from utils.communication import SwarmUDPManager
 
 class SCAExperiment:
     """
@@ -51,6 +52,7 @@ class SCAExperiment:
 
         self.obstacle_avoidance = ObstacleAvoidance(wheel_velocity=self.wheel_velocity)
         self.color_recognition = OptionGroundSensor()
+        self.patch_location = PatchLocationChecker()
         self.sca_algorithm = SCA()
 
         self.radius = 0.3
@@ -97,8 +99,10 @@ class SCAExperiment:
                     msg["bearing"] = rel.bearing
                     neighbours[id] = msg
              
+            policed_patch = self.patch_location.check(patch, my_pose.position if my_pose else None)
+
             settling = (time.monotonic() - self.start_time) < self.OPINION_GRACE_PERIOD
-            patch_for_opinion = -1 if settling else patch
+            patch_for_opinion = -1 if settling else policed_patch
 
             left_bias, right_bias, opinion, quality, rarity, authority, buffer = self.sca_algorithm.sca_tick(patch_for_opinion, neighbours)
 
@@ -130,6 +134,7 @@ class SCAExperiment:
                         "left_motor": left,
                         "right_motor": right,
                         "patch": patch,
+                        "policed_patch": policed_patch,
                         "opinion": opinion,
                         "quality": quality,
                         "rarity": rarity,
