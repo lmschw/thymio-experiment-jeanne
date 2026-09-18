@@ -29,6 +29,13 @@ experiments:
   sca_algorithm_2:
     class: experiments.sca_algorithm_2.SCAExperiment
     tracking: true
+  sca_algorithm_2_leds:
+    class: experiments.sca_algorithm_2_leds.SCAExperiment
+    tracking: true
   quorum_sensing:
     class: experiments.quorum_sensing.QuorumSensingExperiment
     tracking: true
+  quorum_sensing_leds:
+    class: experiments.quorum_sensing_leds.QuorumSensingExperiment
+    tracking: true
+
