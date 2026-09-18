@@ -24,7 +24,7 @@ class SCAExperiment:
         -1: (255, 0, 0),
         0: (0, 0, 139),
         1: (255, 255, 255),
-        2: (80, 40, 10),
+        2: (120, 60, 0),
     }
 
     def __init__(self, robot, config=None, logger=None):
