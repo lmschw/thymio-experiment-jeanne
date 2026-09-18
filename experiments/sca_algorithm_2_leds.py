@@ -21,10 +21,10 @@ class SCAExperiment:
     # Top LED colour shown for each opinion. Black is rendered as dark
     # blue so a "black" opinion still shows up on the LED.
     OPINION_COLORS = {
-        -1: (255, 255, 0),
+        -1: (255, 0, 0),
         0: (0, 0, 139),
         1: (255, 255, 255),
-        2: (139, 69, 19),
+        2: (80, 40, 10),
     }
 
     def __init__(self, robot, config=None, logger=None):
