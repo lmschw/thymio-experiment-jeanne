@@ -89,7 +89,8 @@ class QuorumSensingExperiment:
 
             opinion = self.quorum_sensing.tick(patch, neighbours)
 
-            await self.robot.top_led(*self.OPINION_COLORS.get(opinion, (0, 0, 0)))
+            if self.robot.has_led_ring:
+                await self.robot.led_ring_fill(*self.OPINION_COLORS.get(opinion, (0, 0, 0)))
 
             self.udp.send_to_all(
                 {"id": self.robot_id, 

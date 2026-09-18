@@ -92,7 +92,8 @@ class SCAExperiment:
              
             left_bias, right_bias, opinion, quality, rarity, authority, buffer = self.sca_algorithm.sca_tick(patch, neighbours)
 
-            await self.robot.top_led(*self.OPINION_COLORS.get(opinion, (0, 0, 0)))
+            if self.robot.has_led_ring:
+                await self.robot.led_ring_fill(*self.OPINION_COLORS.get(opinion, (0, 0, 0)))
 
             avoidance_active = (self.obstacle_avoidance.turn_direction is not None or self.obstacle_avoidance.backward)
             if not avoidance_active:
