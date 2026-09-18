@@ -1,6 +1,7 @@
 import asyncio
 import socket
 import os
+import time
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
 from behaviours.colour_recognition import OptionGroundSensor
@@ -18,6 +19,9 @@ class QuorumSensingExperiment:
 
     Requires `tracking: true` for this experiment in swarm_project.yaml.
     """
+
+    # Robots may not form an opinion during this initial settling period.
+    OPINION_GRACE_PERIOD = 3.0
 
     # Top LED colour shown for each opinion. Black is rendered as dark
     # blue so a "black" opinion still shows up on the LED.
@@ -53,6 +57,7 @@ class QuorumSensingExperiment:
             self.radius = 0.3
 
             self.tick = 0
+            self.start_time = None
 
     async def refresh_peers(self):
         robots = await self.client.list_robots()
@@ -64,8 +69,10 @@ class QuorumSensingExperiment:
     async def run(self):
         await self.refresh_peers()
 
+        self.start_time = time.monotonic()
+
         while self.running:
-        
+
             if self.paused:
                 await self.robot.stop()
                 await asyncio.sleep(0.05)
@@ -87,7 +94,10 @@ class QuorumSensingExperiment:
                 if msg.get("id") in nearby_hostnames:
                     neighbours[id] = msg
 
-            opinion = self.quorum_sensing.tick(patch, neighbours)
+            settling = (time.monotonic() - self.start_time) < self.OPINION_GRACE_PERIOD
+            patch_for_opinion = -1 if settling else patch
+
+            opinion = self.quorum_sensing.tick(patch_for_opinion, neighbours)
 
             if self.robot.has_led_ring:
                 await self.robot.led_ring_fill(*self.OPINION_COLORS.get(opinion, (0, 0, 0)))
