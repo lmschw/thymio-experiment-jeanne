@@ -55,6 +55,8 @@ class QuorumSensingExperiment:
             self.radius = 0.3
 
             self.tick = 0
+            self.previous_opinion = -1
+            self.debug_green_until = -1
 
     async def refresh_peers(self):
         robots = await self.client.list_robots()
@@ -93,8 +95,19 @@ class QuorumSensingExperiment:
 
             opinion = self.quorum_sensing.tick(policed_patch, neighbours)
 
+            # Debug: one green pixel for 2s when the ground sensor gave the first opinion.
+            if self.previous_opinion == -1 and opinion != -1 and policed_patch == opinion:
+                self.debug_green_until = self.tick + 40
+            self.previous_opinion = opinion
+
             if self.robot.has_led_ring:
-                await self.robot.led_ring_fill(*self.OPINION_COLORS.get(opinion, (0, 0, 0)))
+                colour = self.OPINION_COLORS.get(opinion, (0, 0, 0))
+                if self.tick < self.debug_green_until:
+                    pixels = [colour] * self.robot.led_ring.num_pixels
+                    pixels[0] = (0, 255, 0)
+                    await self.robot.led_ring_set_pixels(pixels)
+                else:
+                    await self.robot.led_ring_fill(*colour)
 
             self.udp.send_to_all(
                 {"id": self.robot_id, 
