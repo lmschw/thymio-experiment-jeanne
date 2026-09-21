@@ -86,6 +86,6 @@ class OptionGroundSensor:
         else:
             self.candidate = colour
             self.count = 1
-        if self.count >= 3:
+        if self.count >= 10:
             return colour, avg
         return -1, avg
