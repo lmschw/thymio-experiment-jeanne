@@ -20,6 +20,7 @@ STEP_COLORS = {
     2: (50, 15, 0),
 }
 DONE_COLOR = (0, 255, 0)
+ERROR_COLOR = (255, 0, 0)
 
 
 class CalibratePatchesExperiment:
@@ -46,6 +47,10 @@ class CalibratePatchesExperiment:
     commit, and redeploy so every robot picks it up. The experiment
     also makes a best-effort attempt to write the file directly.
 
+    To avoid blocking the Optitrack cameras by reaching for the robot,
+    the "pause" command from your launcher also records the current
+    point (this experiment never actually pauses).
+
     Requires `tracking: true` for this experiment in swarm_project.yaml.
     """
 
@@ -55,15 +60,16 @@ class CalibratePatchesExperiment:
         self.config = config or {}
 
         self.running = True
-        self.paused = False
         self._was_pressed = False
+        self._record_requested = False
 
     async def _wait_for_press(self):
-        """Blocks (cooperatively) until the centre button is pressed, edge-triggered."""
+        """Blocks (cooperatively) until the centre button is pressed or "pause" is sent."""
+        self._record_requested = False
         while self.running:
-            if self.paused:
-                await asyncio.sleep(0.05)
-                continue
+            if self._record_requested:
+                self._record_requested = False
+                return True
 
             pressed = (await self.robot.buttons())["center"]
             if pressed and not self._was_pressed:
@@ -80,17 +86,25 @@ class CalibratePatchesExperiment:
         if self.robot.has_led_ring:
             await self.robot.led_ring_fill(*colour)
 
-        print(f"[CALIBRATE] Place the robot on '{label}' and press the centre button...")
+        print(f"[CALIBRATE] Place the robot on '{label}' and press the centre button (or send 'pause')...")
         if not await self._wait_for_press():
             return None
 
         pose = await self.robot.get_global_pose()
         if pose is None:
             print(
-                f"[CALIBRATE] No tracked pose available for '{label}' "
-                f"-- is tracking running? Try again."
+                f"[CALIBRATE] Button press seen, but no tracked pose for "
+                f"'{self.robot.hostname}' (known: "
+                f"{list(self.robot.global_poses)}). Press again to retry."
             )
+            if self.robot.has_led_ring:
+                await self.robot.led_ring_fill(*ERROR_COLOR)
+                await asyncio.sleep(0.5)
             return await self._record(label, colour)
+
+        if self.robot.has_led_ring:
+            await self.robot.led_ring_fill(*DONE_COLOR)
+            await asyncio.sleep(0.4)
 
         x, _, z = pose.position
         print(f"[CALIBRATE] Recorded '{label}' at x={x:.3f}, z={z:.3f}")
@@ -153,10 +167,10 @@ class CalibratePatchesExperiment:
         self.running = False
 
     async def pause(self):
-        self.paused = True
+        self._record_requested = True
 
     async def resume(self):
-        self.paused = False
+        pass
 
     async def stop(self):
         self.running = False
