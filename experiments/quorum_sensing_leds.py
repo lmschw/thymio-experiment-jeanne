@@ -4,7 +4,6 @@ import os
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
 from behaviours.colour_recognition import OptionGroundSensor
-from behaviours.patch_location import PatchLocationChecker
 from behaviours.quorum_sensing import QuorumSensing
 from swarm_platform.controller.client import SwarmClient
 from utils.communication import SwarmUDPManager
@@ -49,7 +48,6 @@ class QuorumSensingExperiment:
             
             self.obstacle_avoidance = ObstacleAvoidance(wheel_velocity=self.wheel_velocity)
             self.color_recognition = OptionGroundSensor()
-            self.patch_location = PatchLocationChecker()
             self.quorum_sensing = QuorumSensing()
 
             self.radius = 0.3
@@ -83,7 +81,6 @@ class QuorumSensingExperiment:
             patch, _ = self.color_recognition.detect_option(ground)
         
             nearby_hostnames = await self.robot.get_neighbours(self.radius)
-            relative_poses = await self.robot.get_relative_poses(nearby_hostnames)
             my_pose = await self.robot.get_global_pose()
 
             received = self.udp.receive_messages()
@@ -93,19 +90,12 @@ class QuorumSensingExperiment:
                 if msg.get("id") in nearby_hostnames:
                     neighbours[id] = msg
 
-            policed_patch = self.patch_location.check(patch, my_pose.position if my_pose else None)
-
-            # No opinion yet and not on a patch: ignore neighbours, so an opinion can
-            # only start from a patch, never from communication alone.
-            if self.previous_opinion == -1 and policed_patch == -1:
-                neighbours = {}
-
-            opinion = self.quorum_sensing.tick(policed_patch, neighbours)
+            opinion = self.quorum_sensing.tick(patch, neighbours)
 
             # Debug: for 2s after an opinion change, show one pixel: green if it matches the
-            # validated patch under the robot, magenta if it came from communication.
+            # patch under the robot, magenta if it came from communication.
             if opinion != self.previous_opinion and opinion != -1:
-                self.debug_pixel_colour = (0, 255, 0) if policed_patch == opinion else (255, 0, 255)
+                self.debug_pixel_colour = (0, 255, 0) if patch == opinion else (255, 0, 255)
                 self.debug_pixel_until = self.tick + 40
             self.previous_opinion = opinion
 
@@ -136,10 +126,8 @@ class QuorumSensingExperiment:
                         "left_motor": left,
                         "right_motor": right,
                         "patch": patch,
-                        "policed_patch": policed_patch,
                         "opinion": opinion,
                         "neighbours": nearby_hostnames,
-                        "neighbour_distances": {h: round(r.distance, 3) for h, r in relative_poses.items()},
                         "position": my_pose.position if my_pose else None
                     },
                 )

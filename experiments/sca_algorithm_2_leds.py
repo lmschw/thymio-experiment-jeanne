@@ -4,7 +4,6 @@ import os
 
 from behaviours.obstacle_avoidance import ObstacleAvoidance
 from behaviours.colour_recognition import OptionGroundSensor
-from behaviours.patch_location import PatchLocationChecker
 from behaviours.sca_algorithm_2 import SCA
 from swarm_platform.controller.client import SwarmClient
 from utils.communication import SwarmUDPManager
@@ -48,7 +47,6 @@ class SCAExperiment:
 
         self.obstacle_avoidance = ObstacleAvoidance(wheel_velocity=self.wheel_velocity)
         self.color_recognition = OptionGroundSensor()
-        self.patch_location = PatchLocationChecker()
         self.sca_algorithm = SCA()
 
         self.radius = 0.3
@@ -95,19 +93,12 @@ class SCAExperiment:
                     msg["bearing"] = rel.bearing
                     neighbours[id] = msg
              
-            policed_patch = self.patch_location.check(patch, my_pose.position if my_pose else None)
-
-            # No opinion yet and not on a patch: ignore neighbours, so an opinion can
-            # only start from a patch, never from communication alone.
-            if self.previous_opinion == -1 and policed_patch == -1:
-                neighbours = {}
-
-            left_bias, right_bias, opinion, quality, rarity, authority, buffer = self.sca_algorithm.sca_tick(policed_patch, neighbours)
+            left_bias, right_bias, opinion, quality, rarity, authority, buffer = self.sca_algorithm.sca_tick(patch, neighbours)
 
             # Debug: for 2s after an opinion change, show one pixel: green if it matches the
-            # validated patch under the robot, magenta if it came from communication.
+            # patch under the robot, magenta if it came from communication.
             if opinion != self.previous_opinion and opinion != -1:
-                self.debug_pixel_colour = (0, 255, 0) if policed_patch == opinion else (255, 0, 255)
+                self.debug_pixel_colour = (0, 255, 0) if patch == opinion else (255, 0, 255)
                 self.debug_pixel_until = self.tick + 40
             self.previous_opinion = opinion
 
@@ -145,14 +136,12 @@ class SCAExperiment:
                         "left_motor": left,
                         "right_motor": right,
                         "patch": patch,
-                        "policed_patch": policed_patch,
                         "opinion": opinion,
                         "quality": quality,
                         "rarity": rarity,
                         "authority": authority,
                         "buffer": buffer,
                         "neighbours": nearby_hostnames,
-                        "neighbour_distances": {h: round(r.distance, 3) for h, r in relative_poses.items()},
                         "position": my_pose.position if my_pose else None,
                     },
                 )
