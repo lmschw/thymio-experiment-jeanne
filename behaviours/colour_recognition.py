@@ -35,6 +35,9 @@ class OptionGroundSensor:
         self.option_centers = calibration["option_centers"]
         self.allowed_offsets = calibration["allowed_offsets"]
 
+        self.candidate = -1
+        self.count = 0
+
         if len(self.option_centers) != num_options:
             raise ValueError(
                 f"Calibration for '{hostname}' has "
@@ -78,4 +81,11 @@ class OptionGroundSensor:
 
         colour = self._classify(avg)
 
-        return colour, avg
+        if colour == self.candidate:
+            self.count += 1
+        else:
+            self.candidate = colour
+            self.count = 1
+        if self.count >= 3:
+            return colour, avg
+        return -1, avg
