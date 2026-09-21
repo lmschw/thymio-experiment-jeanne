@@ -55,7 +55,8 @@ class SCAExperiment:
 
         self.tick = 0
         self.previous_opinion = -1
-        self.debug_green_until = -1
+        self.debug_pixel_until = -1
+        self.debug_pixel_colour = (0, 255, 0)
 
     async def refresh_peers(self):
         robots = await self.client.list_robots()
@@ -96,18 +97,25 @@ class SCAExperiment:
              
             policed_patch = self.patch_location.check(patch, my_pose.position if my_pose else None)
 
+            # No opinion yet and not on a patch: ignore neighbours, so an opinion can
+            # only start from a patch, never from communication alone.
+            if self.previous_opinion == -1 and policed_patch == -1:
+                neighbours = {}
+
             left_bias, right_bias, opinion, quality, rarity, authority, buffer = self.sca_algorithm.sca_tick(policed_patch, neighbours)
 
-            # Debug: one green pixel for 2s when the ground sensor gave the first opinion.
-            if self.previous_opinion == -1 and opinion != -1 and policed_patch == opinion:
-                self.debug_green_until = self.tick + 40
+            # Debug: for 2s after an opinion change, show one pixel: green if it matches the
+            # validated patch under the robot, magenta if it came from communication.
+            if opinion != self.previous_opinion and opinion != -1:
+                self.debug_pixel_colour = (0, 255, 0) if policed_patch == opinion else (255, 0, 255)
+                self.debug_pixel_until = self.tick + 40
             self.previous_opinion = opinion
 
             if self.robot.has_led_ring:
                 colour = self.OPINION_COLORS.get(opinion, (0, 0, 0))
-                if self.tick < self.debug_green_until:
+                if self.tick < self.debug_pixel_until:
                     pixels = [colour] * self.robot.led_ring.num_pixels
-                    pixels[0] = (0, 255, 0)
+                    pixels[0] = self.debug_pixel_colour
                     await self.robot.led_ring_set_pixels(pixels)
                 else:
                     await self.robot.led_ring_fill(*colour)
@@ -144,6 +152,7 @@ class SCAExperiment:
                         "authority": authority,
                         "buffer": buffer,
                         "neighbours": nearby_hostnames,
+                        "neighbour_distances": {h: round(r.distance, 3) for h, r in relative_poses.items()},
                         "position": my_pose.position if my_pose else None,
                     },
                 )
