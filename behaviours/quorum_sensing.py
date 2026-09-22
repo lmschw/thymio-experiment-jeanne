@@ -28,6 +28,11 @@ class QuorumSensing:
             if self.opinion == -1:
                 self.opinion = patch
 
+        # Robots with no opinion yet (never visited a patch) ignore
+        # neighbours -- an opinion can only start from a patch.
+        if self.opinion == -1:
+            neighbours = {}
+
         opinions = [0]*3
         for n in neighbours.values():
             if n["opinion"] != -1:

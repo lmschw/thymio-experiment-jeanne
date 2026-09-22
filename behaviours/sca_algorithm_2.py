@@ -61,6 +61,11 @@ class SCA :
             if self.opinion == patch:
                 self.quality = self._measure_quality(patch)
 
+        # Robots with no opinion yet (never visited a patch) ignore
+        # neighbours -- an opinion can only start from a patch.
+        if self.opinion == -1:
+            neighbours = {}
+
         #Step 2 - compute rarity
         self._update_buffer(neighbours)
         self.rho = self._compute_rarity()
