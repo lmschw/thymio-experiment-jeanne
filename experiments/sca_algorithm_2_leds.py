@@ -49,7 +49,7 @@ class SCAExperiment:
         self.color_recognition = OptionGroundSensor()
         self.sca_algorithm = SCA()
 
-        self.radius = 0.3
+        self.radius = 0.1
 
         self.tick = 0
         self.previous_opinion = -1
