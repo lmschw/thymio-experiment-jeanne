@@ -50,7 +50,7 @@ class QuorumSensingExperiment:
             self.color_recognition = OptionGroundSensor()
             self.quorum_sensing = QuorumSensing()
 
-            self.radius = 0.1
+            self.radius = 0.2
 
             self.tick = 0
             self.previous_opinion = -1
