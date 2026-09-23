@@ -6,21 +6,10 @@ tracking:
   host: 10.0.10.7
 
   hostname_map:
-    thymio-01: "thymio_marker_08"
-    thymio-03: "thymio_marker_03"
-    thymio-04: "thymio_marker_10"
     thymio-09: "thymio_marker_09"
-    thymio-07: "thymio_marker_02"
-    thymio-14: "thymio_marker_06"
-    thymio-15: "thymio_marker_07"
     thymio-11: "thymio_marker_04"
-    thymio-12: "thymio_marker_13"
-    thymio-25: "thymio_marker_01"
-    thymio-18: "thymio_marker_05"
-    thymio-08: "thymio_marker_11"
-    thymio-17: "thymio_marker_12"
     thymio-16: "thymio_marker_15"
-    thymio-19: "thymio_marker_14"
+
 
 experiments:
   obstacle_avoidance:
