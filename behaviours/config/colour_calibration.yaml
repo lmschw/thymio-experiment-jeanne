@@ -51,8 +51,8 @@ thymio-18:
   allowed_offsets: [15, 5, 15]
 
 thymio-19:
-  option_centers: [41, 875, 89]
-  allowed_offsets: [15, 5, 15]
+  option_centers: [86, 788, 153]
+  allowed_offsets: [20, 5, 15]
 
 thymio-25:
   option_centers: [115, 813, 187]
