@@ -27,16 +27,16 @@ thymio-11:
   allowed_offsets: [15, 5, 20]
 
 thymio-12:
-  option_centers: [50, 716, 101]
-  allowed_offsets: [15, 5, 15]
+  option_centers: [147, 957, 233]
+  allowed_offsets: [20, 5, 15]
 
 thymio-14:
   option_centers: [50, 751, 110]
   allowed_offsets: [15, 5, 15]
 
 thymio-15:
-  option_centers: [42, 917, 93]
-  allowed_offsets: [15, 5, 15]
+  option_centers: [169, 953, 265]
+  allowed_offsets: [15, 5, 20]
 
 thymio-16:
   option_centers: [41, 706, 89]
@@ -55,5 +55,5 @@ thymio-19:
   allowed_offsets: [15, 5, 15]
 
 thymio-25:
-  option_centers: [55, 836, 115]
-  allowed_offsets: [20, 5, 20]
+  option_centers: [115, 813, 187]
+  allowed_offsets: [25, 5, 30]
