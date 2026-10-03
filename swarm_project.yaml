@@ -3,7 +3,7 @@ name: Thymio Experiments
 version: 1.0
 
 tracking:
-  host: 10.0.10.7
+  host: 10.0.10.4
 
   hostname_map:
     thymio-01: "thymio_marker_08"
